@@ -10,11 +10,12 @@
 #include <iomanip>
 #include <sstream>
 
-// Layout and colors
+//layout
 static const unsigned width = 1100;
 static const unsigned height = 720;
 static const int minPopularity = 70;
 
+//colors
 static const sf::Color backgroundC(18, 18, 26);
 static const sf::Color panelC(32, 32, 44);
 static const sf::Color textC(236, 236, 242);
@@ -22,14 +23,14 @@ static const sf::Color smallTextC(150, 150, 170);
 static const sf::Color accentC(232, 138, 172);
 static const sf::Color matchC(128, 198, 138);
 
-// Formats a number with a fixed number of decimals
+//formats a number with a fixed number of decimals
 static std::string fmt(double value, int decimals) {
     std::ostringstream out;
     out << std::fixed << std::setprecision(decimals) << value;
     return out.str();
 }
 
-// Appends one Unicode character to an utf8 string
+//appends one unicode character to an utf8 string
 static void appendUtf8(std::string& s, char32_t c) {
     if (c < 0x80) {
         s += static_cast<char>(c);
@@ -48,13 +49,13 @@ static void appendUtf8(std::string& s, char32_t c) {
     }
 }
 
-// Removes the last character of a utf8 string
+//removes the last character of a utf8 string
 static void popUtf8(std::string& s) {
     while (!s.empty() && (static_cast<unsigned char>(s.back()) & 0xC0) == 0x80) s.pop_back();
     if (!s.empty()) s.pop_back();
 }
 
-// Setup
+//main setup
 GameUI::GameUI(const std::vector<Song>& songs, const std::vector<CategorySets>& sets)
     : songs_(songs),
       sets_(sets),
@@ -84,7 +85,7 @@ void GameUI::run() {
     }
 }
 
-// Input
+//input
 void GameUI::handleEvent(const sf::Event& event) {
     if (event.is<sf::Event::Closed>()) {
         window_.close();
@@ -107,8 +108,7 @@ void GameUI::handleEvent(const sf::Event& event) {
 
 void GameUI::onText(char32_t c) {
     const bool backspace = (c == 8);
-    if (!backspace && (c < 32 || c == 127)) return;  // ignore other control keys
-
+    if (!backspace && (c < 32 || c == 127)) return;
     if (screen_ == Screen::Play) {
         if (backspace) popUtf8(input_);
         else if (input_.size() < 80) appendUtf8(input_, c);
@@ -137,7 +137,7 @@ void GameUI::onKey(sf::Keyboard::Key key) {
     }
 }
 
-// Actions
+//actions
 void GameUI::startGame() {
     game_.startRandom(rng_, minPopularity);
     input_.clear();
@@ -145,14 +145,16 @@ void GameUI::startGame() {
     selected_ = 0;
     screen_ = Screen::Play;
 }
-
+//checks and recods the guess
 void GameUI::guessSong(int songId) {
-    if (game_.isOver() || game_.hasGuessed(songId)) return;
+    if (game_.isOver() || game_.hasGuessed(songId))
+        return;
     game_.guess(songId);
     input_.clear();
     suggestions_.clear();
     selected_ = 0;
-    if (game_.isOver()) screen_ = Screen::Results;
+    if (game_.isOver())
+        screen_ = Screen::Results;
 }
 
 void GameUI::refreshSuggestions() {
@@ -203,11 +205,11 @@ sf::String GameUI::fitText(const std::string& utf8, float maxWidth, unsigned siz
     return s + "...";
 }
 
-// Draws text vertically centered in `box`, aligned left, center or right.
-void GameUI::label(const sf::String& s, sf::FloatRect r, unsigned size, sf::Color color,
-                   Align align, bool bold, float padding) {
+// text center in the box
+void GameUI::label(const sf::String& s, sf::FloatRect r, unsigned size, sf::Color color, Align align, bool bold, float padding) {
     sf::Text t(font_, s, size);
-    if (bold) t.setStyle(sf::Text::Bold);
+    if (bold)
+        t.setStyle(sf::Text::Bold);
     t.setFillColor(color);
 
     const sf::FloatRect cap = font_.getGlyph(U'H', size, bold).bounds;
@@ -277,8 +279,7 @@ void GameUI::drawMenu() {
 void GameUI::drawPlay() {
     label("SONGDLE", sf::FloatRect({40.f, 20.f}, {300.f, 44.f}), 30, accentC, Align::Left, true, 0.f);
     const int guessNumber = std::min(game_.guessesUsed() + 1, game_.maxGuesses());
-    label(toSf("Guess " + std::to_string(guessNumber) + " of " + std::to_string(game_.maxGuesses())),
-          sf::FloatRect({600.f, 20.f}, {330.f, 44.f}), 22, textC, Align::Right, true, 0.f);
+    label(toSf("Guess " + std::to_string(guessNumber) + " of " + std::to_string(game_.maxGuesses())), sf::FloatRect({600.f, 20.f}, {330.f, 44.f}), 22, textC, Align::Right, true, 0.f);
     button("Give up", sf::FloatRect({950.f, 22.f}, {110.f, 40.f}), [this] { screen_ = Screen::Results; });
 
     // Search box
@@ -339,7 +340,7 @@ void GameUI::drawPlay() {
         float y = 606.f;
         for (const FilterTiming& t : last.timings) {
             label(toSf(t.structure), sf::FloatRect({340.f, y}, {180.f, 26.f}), 16, textC, Align::Left, false, 0.f);
-            const float barW = static_cast<float>(380.0 * t.treeMicros / slowest);
+            const auto barW = static_cast<float>(380.0 * t.treeMicros / slowest);
             box(sf::FloatRect({530.f, y + 5.f}, {380.f, 16.f}), backgroundC);
             box(sf::FloatRect({530.f, y + 5.f}, {std::max(barW, 2.f), 16.f}), accentC);
             label(toSf(fmt(t.treeMicros, 1) + " us"), sf::FloatRect({920.f, y}, {130.f, 26.f}), 16, textC, Align::Right, false, 0.f);
@@ -358,9 +359,7 @@ void GameUI::drawPlay() {
         if (suggestions_.empty()) {
             sf::FloatRect item({search.position.x, y}, {search.size.x, itemH - 2.f});
             box(item, panelC);
-            label(toSf("No match. Only songs with popularity " + std::to_string(minPopularity) +
-                       "+ can be guessed."),
-                  item, 17, smallTextC);
+            label(toSf("No match. Only songs with popularity " + std::to_string(minPopularity) + "+ can be guessed."), item, 17, smallTextC);
         }
         for (int i = 0; i < static_cast<int>(suggestions_.size()); ++i) {
             const int id = suggestions_[i];
@@ -444,7 +443,7 @@ void GameUI::drawBenchmark() {
             }
             y += 48.f;
         }
-        label("Green = lower (better). Per-guess timings saved to benchmark_results.csv", sf::FloatRect({40.f, y + 2.f}, {1020.f, 24.f}), 14, smallTextC, Align::Left, false, 0.f);
+        label("Timings per guess are saved to benchmark_results.csv", sf::FloatRect({40.f, y + 2.f}, {1020.f, 24.f}), 14, smallTextC, Align::Left, false, 0.f);
     } else {
         label("Type how many games to play and press Run. 200 games takes a minute or two on the full dataset.", sf::FloatRect({40.f, 220.f}, {1020.f, 26.f}), 16, smallTextC, Align::Left, false, 0.f);
     }
