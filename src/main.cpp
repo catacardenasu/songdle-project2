@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
     std::vector<CategorySets> sets;
 #ifdef HAVE_BPLUS
-    sets.push_back(buildCategorySet()Set<BPlusTree>("B+ Tree", songs));
+    sets.push_back(buildCategorySet<BPlusTree>("B+ Tree", songs));
 #endif
 #ifdef HAVE_RB
     sets.push_back(buildCategorySet<RedBlackTree>("Red-black tree", songs));
