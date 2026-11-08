@@ -95,4 +95,29 @@ class BPlusTree {
         delete n;
     }
 
+public:
+    BPlusTree(){}
+    BPlusTree(const BPlusTree&) =delete;
+    BPlusTree& operator=(const BPlusTree&) = delete;
+    ~BPlusTree() { destroy(root); }
+
+    void insert(const K& key,  int idx) {
+        if (root== nullptr ) {
+            root =new Node(true);
+            nodeCount++;
+        }
+        K upKey;
+        Node* newRight =insertRec(root, key, idx, upKey);
+        if (newRight !=nullptr) {
+            Node* newRoot =new Node(false);
+            nodeCount++;
+            newRoot->keys.push_back(upKey);
+            newRoot->children.push_back(root);
+            newRoot->children.push_back(newRight);
+            root =newRoot;
+        }
+        numEntries++;
+    }
+
+    
 };
