@@ -17,6 +17,7 @@ Report and video: done by all members. Video demo: link
 
 ## Requirements
 - A C++17 compiler (g++ 9+ or clang++ 10+)
+- SFML (graphics library used for the game window). On macOS: `brew install sfml`
 - Python 3 (optional: only for re-cleaning the data and graphing benchmark results)
 
 ## Setup
@@ -39,27 +40,34 @@ python3 scripts/clean_data.py
 (`scripts/explore_data.py` is a helper for inspecting the dataset.)
 
 ## Build
-Run from the folder that contains `main.cpp`.
+The C++ source is in the `src/` folder. From the repo root:
 ```
-g++ -std=c++17 -O2 -Wall *.cpp -o songdle
+cd src
+g++ -std=c++17 -O2 -Wall *.cpp -o songdle -I$(brew --prefix sfml)/include -L$(brew --prefix sfml)/lib -lsfml-graphics -lsfml-window -lsfml-system
+cd ..
 ```
+(macOS with Homebrew. On Linux, install SFML with your package manager and use
+`g++ -std=c++17 -O2 -Wall *.cpp -o songdle -lsfml-graphics -lsfml-window -lsfml-system`.)
 
 ## Run
+Run from the repo root so the program can find `data/songs_clean.tsv`:
 ```
-./songdle
+./src/songdle
 ```
 Menu options:
 - **Play:** guess songs; after each guess you get artist match, higher/lower for year, tempo
   and popularity, the number of songs still matching, and the filtering time of each tree.
-- **Benchmark:** plays many random games automatically and prints the average filtering time,
-  build time and memory for the B+ tree and the red-black tree.
+-  **Run benchmark:** plays many random games automatically and shows the average filtering
+  time of the B+ tree and the red-black tree.
+- **Quit:** exits the program.
 
 ## Project layout
+All C++ source files are in `src/`.
 | File | Purpose |
 |---|---|
-| `main.cpp` | Program entry point |
+| `src/main.cpp` | Program entry point |
 | `Game.h` / `Game.cpp` | Game logic and clue feedback |
-| `GameUI.h` / `GameUI.cpp` | Menu and text interface |
+| `GameUI.h` / `GameUI.cpp` | Menu and graph interface (SFML) |
 | `Benchmark.h` / `Benchmark.cpp` | Benchmark mode (B+ tree vs red-black tree) |
 | `DataLoader.h` / `DataLoader.cpp` | Loads `data/songs_clean.tsv` |
 | `Song.h` | Song record (name, artist, year, popularity, tempo) |
