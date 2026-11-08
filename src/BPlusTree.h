@@ -1,4 +1,5 @@
 #pragma once
+#include "TreeBase.h"
 #include <vector>
 #include <algorithm>
 #include <string>

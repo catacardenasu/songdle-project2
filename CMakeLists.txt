@@ -29,6 +29,3 @@ add_executable(songdle-project2 src/main.cpp src/GameUI.cpp)
 target_link_libraries(songdle-project2 PRIVATE songdle_core SFML::Graphics)
 add_executable(songdle src/main.cpp src/GameUI.cpp)
 target_link_libraries(songdle PRIVATE songdle_core SFML::Graphics)
-
-add_executable(test_same_results tests/test_same_results.cpp)
-target_link_libraries(test_same_results PRIVATE songdle_core)

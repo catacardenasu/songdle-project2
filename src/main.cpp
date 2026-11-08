@@ -1,7 +1,6 @@
 #include "DataLoader.h"
 #include "GameUI.h"
 #include "Game.h"
-#include "SortedVectorIndex.h"
 
 #if __has_include("BPlusTree.h")
 #include "BPlusTree.h"
@@ -37,10 +36,6 @@ int main(int argc, char** argv) {
 #ifdef HAVE_RB
     sets.push_back(buildCategorySet<RedBlackTree>("Red-black tree", songs));
 #endif
-    if (sets.empty()) {  // before the trees are merged
-        std::cout << "(Trees not found yet: using the sorted-vector stand-in.)\n";
-        sets.push_back(buildCategorySet<SortedVectorIndex>("Sorted vector (stand-in)", songs));
-    }
     for (const CategorySets& s : sets)
         std::cout << "Built " << s.name << " in " << s.buildTime << " ms\n";
 

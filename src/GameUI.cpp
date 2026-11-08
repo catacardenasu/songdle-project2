@@ -445,7 +445,7 @@ void GameUI::drawBenchmark() {
         }
         label("Timings per guess are saved to benchmark_results.csv", sf::FloatRect({40.f, y + 2.f}, {1020.f, 24.f}), 14, smallTextC, Align::Left, false, 0.f);
     } else {
-        label("Type how many games to play and press Run. 200 games takes a minute or two on the full dataset.", sf::FloatRect({40.f, 220.f}, {1020.f, 26.f}), 16, smallTextC, Align::Left, false, 0.f);
+        label("Type how many games to play and press Run. 200 games takes a few minutes to run on the full dataset.", sf::FloatRect({40.f, 220.f}, {1020.f, 26.f}), 16, smallTextC, Align::Left, false, 0.f);
     }
     button("Menu", sf::FloatRect({40.f, 648.f}, {160.f, 48.f}), [this] { screen_ = Screen::Menu; });
 }
