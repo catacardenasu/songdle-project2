@@ -118,6 +118,39 @@ public:
         }
         numEntries++;
     }
+    std::vector<int> search(const K& key) const {
+        Node* leaf = findLeaf(key);
+        if (leaf ==nullptr) return {};
+        int pos= std::lower_bound(leaf->keys.begin(), leaf->keys.end(), key)
+                  - leaf->keys.begin();
+        if (pos < (int)leaf->keys.size() &&leaf->keys[pos] == key)
+            return leaf->postings[pos];
+        return {};
+    }
+
+    
+
+    std::vector<int> rangeSearch(const K& lo, const K& hi) const {
+        std::vector<int> result;
+        Node* leaf =findLeaf(lo);
+        if (leaf == nullptr) return result;
+        int i = std::lower_bound(leaf->keys.begin(), leaf->keys.end(), lo)
+                - leaf->keys.begin();
+        while (leaf != nullptr) {
+            for (; i < (int)leaf->keys.size(); i++) {
+                if (leaf->keys[i] > hi)return result;
+                result.insert(result.end(),leaf->postings[i].begin(),
+                              leaf->postings[i].end());
+            }
+            leaf = leaf->next;
+            i = 0;
+        }
+        return result;
+    }
+
+
+
+   
 
     
 };
