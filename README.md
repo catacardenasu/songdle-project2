@@ -13,7 +13,7 @@ Filtering is done with two structures written from scratch, a **B+ tree** and a
 | Natalie Pascut | natp0 | Red-black tree |
 | Catalina Cardenas | catacardenasu | Data cleaning, game logic, menu, benchmark |
 
-Report and video: done by all members. Video demo: link
+Report and video: done by all members. Video demo: [link](https://youtu.be/IRcZro-Sjko )
 
 ## Requirements
 - A C++17 compiler (g++ 9+ or clang++ 10+)
