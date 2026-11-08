@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-#sFML 3: downloaded and built automatically
 include(FetchContent)
 FetchContent_Declare(SFML
         URL https://github.com/SFML/SFML/archive/refs/tags/3.0.1.tar.gz
@@ -14,20 +13,23 @@ FetchContent_Declare(SFML
         EXCLUDE_FROM_ALL
         SYSTEM)
 set(BUILD_SHARED_LIBS OFF)
-set(SFML_BUILD_AUDIO OFF) #do not need audio
+set(SFML_BUILD_AUDIO OFF)
 set(SFML_BUILD_NETWORK OFF)
 FetchContent_MakeAvailable(SFML)
 
-#Code shared by the game and the tests
 add_library(songdle_core STATIC
         src/DataLoader.cpp
         src/Game.cpp
-        src/Benchmark.cpp)
+        src/Benchmark.cpp
+        src/BPlusTree.cpp
+        src/RedBlackTree.cpp)
 target_include_directories(songdle_core PUBLIC src)
 
 # game window
 add_executable(songdle-project2 src/main.cpp src/GameUI.cpp)
 target_link_libraries(songdle-project2 PRIVATE songdle_core SFML::Graphics)
+add_executable(songdle src/main.cpp src/GameUI.cpp)
+target_link_libraries(songdle PRIVATE songdle_core SFML::Graphics)
 
 add_executable(test_same_results tests/test_same_results.cpp)
 target_link_libraries(test_same_results PRIVATE songdle_core)
