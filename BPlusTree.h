@@ -2,16 +2,17 @@
 #include <vector>
 #include <algorithm>
 
+// ORDER = max number of keys a node can hold before it splits.
 template <typename K, int ORDER = 64>
 class BPlusTree {
-    struct Node {
+    struct Node { // One struct is used for both leaf and internal nodes.
 
         bool isLeaf;
         std::vector<K> keys;
         std::vector<Node*> children;
-        std::vector<std::vector<int>>postings;
+        std::vector<std::vector<int>>postings; // Leaf only: postings[i] holds the song indices for keys[i].
 
-        Node* next = nullptr;
+        Node* next = nullptr; // Leaf only: link to the next leaf, used by rangeSearch.
         Node(bool leaf) : isLeaf(leaf) {}
     };
 
@@ -19,10 +20,12 @@ class BPlusTree {
     int nodeCount = 0;
     int numEntries = 0;
 
+    
+    // which child to go down into; a key equal to a signpost goes right.
     int childIndex(Node* n,const K& key) const {
         return std::upper_bound(n->keys.begin(), n->keys.end(), key)-n->keys.begin();
     }
-
+     // walk down from the root to the leaf where key belong
     Node* findLeaf(const K& key) const {
         Node* n = root;
 
@@ -32,13 +35,13 @@ class BPlusTree {
         return n;
 
     }
-
+    // insert into this subtree
     Node* insertRec(Node* node,const K& key, int idx , K& upKey) {
         if (node->isLeaf) {
             int pos= std::lower_bound(node->keys.begin(), node->keys.end(), key)
                       - node->keys.begin();
 
-            if (pos <(int)node->keys.size() && node->keys[pos]==key) {
+            if (pos <(int)node->keys.size() && node->keys[pos]==key) {  //just add the song index to its list
                 node->postings[pos].push_back(idx);
                 return nullptr;
             }
@@ -61,6 +64,8 @@ class BPlusTree {
             right->next =node->next;
             node->next =right;
 
+
+            // leaf split;copy the first key of the right leaf up
             upKey =right->keys[0];
             return right;
         }
@@ -70,7 +75,7 @@ class BPlusTree {
         Node* newChild = insertRec(node->children[ci], key, idx,childUp);
         if (newChild ==nullptr) return nullptr;
 
-        node->keys.insert(node->keys.begin() + ci,childUp);
+        node->keys.insert(node->keys.begin() + ci,childUp); // child split; add its key and new node to this node.
         node->children.insert(node->children.begin() +ci + 1,newChild);
 
         if ((int)node->keys.size()<=ORDER) return nullptr;
@@ -87,7 +92,7 @@ class BPlusTree {
         node->children.erase(node->children.begin() + mid + 1, node->children.end());
         return right;
     }
-
+    // free every node (children first)
     void destroy(Node* n) {
         if (n == nullptr) return;
         for (Node* c : n->children)  destroy(c);
@@ -101,6 +106,7 @@ public:
     BPlusTree& operator=(const BPlusTree&) = delete;
     ~BPlusTree() { destroy(root); }
 
+    // add (key -> song index).
     void insert(const K& key,  int idx) {
         if (root== nullptr ) {
             root =new Node(true);
@@ -118,6 +124,8 @@ public:
         }
         numEntries++;
     }
+
+    // all song indices with exactyl this key
     std::vector<int> search(const K& key) const {
         Node* leaf = findLeaf(key);
         if (leaf ==nullptr) return {};
@@ -129,7 +137,7 @@ public:
     }
 
     
-
+    //go to the leaf with lo, then walk along the linked leaves until a key > hi.
     std::vector<int> rangeSearch(const K& lo, const K& hi) const {
         std::vector<int> result;
         Node* leaf =findLeaf(lo);
@@ -147,8 +155,10 @@ public:
         }
         return result;
     }
-
-
+    //rough memory estimate
+    size_t memoryBytes() const {
+        return nodeCount * sizeof(Node) + numEntries * (sizeof(int) + sizeof(K));
+    }
 
    
 
