@@ -21,7 +21,6 @@ add_library(songdle_core STATIC
         src/DataLoader.cpp
         src/Game.cpp
         src/Benchmark.cpp
-        src/BPlusTree.cpp
         src/RedBlackTree.cpp)
 target_include_directories(songdle_core PUBLIC src)
 

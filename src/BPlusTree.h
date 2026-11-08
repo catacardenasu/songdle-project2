@@ -1,18 +1,20 @@
 #pragma once
 #include <vector>
 #include <algorithm>
+#include <string>
 
-// ORDER = max number of keys a node can hold before it splits.
-template <typename K, int ORDER = 64>
-class BPlusTree {
-    struct Node { // One struct is used for both leaf and internal nodes.
+// ORDER = max number of keys a node can hold before it splits
+class BPlusTree : public TreeBase {
+    using K = double;
+    int ORDER;
+    struct Node { //One struct is used for both leaf and internal nodes.
 
         bool isLeaf;
         std::vector<K> keys;
         std::vector<Node*> children;
-        std::vector<std::vector<int>>postings; // Leaf only: postings[i] holds the song indices for keys[i].
+        std::vector<std::vector<int>>postings; // Leaf only: postings[i] holds the song indices for keys[i]
 
-        Node* next = nullptr; // Leaf only: link to the next leaf, used by rangeSearch.
+        Node* next = nullptr; // Leaf only: link to the next leaf, used by rangeSearch
         Node(bool leaf) : isLeaf(leaf) {}
     };
 
@@ -101,13 +103,13 @@ class BPlusTree {
     }
 
 public:
-    BPlusTree(){}
+    explicit BPlusTree(int order = 64) : ORDER(order) {}
     BPlusTree(const BPlusTree&) =delete;
     BPlusTree& operator=(const BPlusTree&) = delete;
-    ~BPlusTree() { destroy(root); }
+    ~BPlusTree() override { destroy(root); }
 
     // add (key -> song index).
-    void insert(const K& key,  int idx) {
+    void insert(double key, int idx) override {
         if (root== nullptr ) {
             root =new Node(true);
             nodeCount++;
@@ -138,7 +140,7 @@ public:
 
     
     //go to the leaf with lo, then walk along the linked leaves until a key > hi.
-    std::vector<int> rangeSearch(const K& lo, const K& hi) const {
+    std::vector<int> rangeSearch(double lo, double hi) const override {
         std::vector<int> result;
         Node* leaf =findLeaf(lo);
         if (leaf == nullptr) return result;
@@ -156,8 +158,11 @@ public:
         return result;
     }
     //rough memory estimate
-    size_t memoryBytes() const {
-        return nodeCount * sizeof(Node) + numEntries * (sizeof(int) + sizeof(K));
+    int memoryBytes() const override {
+        return static_cast<int>(nodeCount * sizeof(Node) + numEntries * (sizeof(int) + sizeof(K)));
+    }
+    std::string name() const override {
+        return "B+ tree";
     }
 
    
