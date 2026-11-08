@@ -1,9 +1,9 @@
 #include "DataLoader.h"
 #include "Game.h"
 #include "SortedVectorIndex.h"
-#if __has_include("HashMapIndex.h")
-#include "HashMapIndex.h"
-#define HAVE_HASH 1
+#if __has_include("BPlusTree.h")
+#include "BPlusTree.h"
+#define HAVE_BPLUS 1
 #endif
 #if __has_include("RedBlackTree.h")
 #include "RedBlackTree.h"
@@ -51,8 +51,8 @@ std::string range(double lo, double hi) {
 
 std::vector<Candidate> structuresUnderTest() {
     std::vector<Candidate> c;
-#ifdef HAVE_HASH
-    c.push_back({"Hash map", []() -> TreeBase* { return new HashMapIndex(); }});
+#ifdef HAVE_BPLUS
+    c.push_back({"B+ tree", []() -> TreeBase* { return new BPlusTree(); }});
 #endif
 #ifdef HAVE_RB
     c.push_back({"Red-black tree", []() -> TreeBase* { return new RedBlackTree(); }});
@@ -130,7 +130,7 @@ void testRealData(const std::vector<Song>& songs, const std::vector<Candidate>& 
     }
 
     std::mt19937 rng(123);
-    std::uniform_int_distribution<int> anySong(0, static_cast<int>(songs.size()) - 1);
+    std::uniform_int_distribution anySong(0, static_cast<int>(songs.size()) - 1);
 
     for (int k = 1; k < static_cast<int>(sets.size()); ++k) {
         std::cout << "[" << sets[k].name << "] 3,000 random range queries\n";
