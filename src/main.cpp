@@ -3,9 +3,9 @@
 #include "Game.h"
 #include "SortedVectorIndex.h"
 
-#if __has_include("HashMapIndex.h")
-#include "HashMapIndex.h"
-#define HAVE_HASH 1
+#if __has_include("BPlusTree.h")
+#include "BPlusTree.h"
+#define HAVE_BPLUS 1
 #endif
 #if __has_include("RedBlackTree.h")
 #include "RedBlackTree.h"
@@ -15,7 +15,7 @@
 #include <iostream>
 
 int main(int argc, char** argv) {
-    const std::string path = argc > 1 ? argv[1] : "data/songs_clean.tsv";;
+    const std::string path = argc > 1 ? argv[1] : "data/songs_clean.tsv";
 
     std::cout << "Loading " << path << "...\n";
     LoadStats stats;
@@ -31,11 +31,11 @@ int main(int argc, char** argv) {
     if (songs.empty()) return 1;
 
     std::vector<CategorySets> sets;
-#ifdef HAVE_HASH
-    sets.push_back(buildIndexSet<HashMapIndex>("Hash map", songs));
+#ifdef HAVE_BPLUS
+    sets.push_back(buildCategorySet()Set<BPlusTree>("B+ Tree", songs));
 #endif
 #ifdef HAVE_RB
-    sets.push_back(buildIndexSet<RedBlackTree>("Red-black tree", songs));
+    sets.push_back(buildCategorySet<RedBlackTree>("Red-black tree", songs));
 #endif
     if (sets.empty()) {  // before the trees are merged
         std::cout << "(Trees not found yet: using the sorted-vector stand-in.)\n";

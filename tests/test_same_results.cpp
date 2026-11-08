@@ -1,16 +1,9 @@
-// Proves both trees return exactly the same songs as a simple sorted-vector
-// reference, first on a small hand-made index, then on the real dataset.
-//
-// Usage: test_same_results [path/to/tracks.csv] [songLimit]
-// Exit code 0 = all checks passed.
-
 #include "DataLoader.h"
 #include "Game.h"
 #include "SortedVectorIndex.h"
-
-#if __has_include("HashMapIndex.h")
-#include "HashMapIndex.h"
-#define HAVE_HASH 1
+#if __has_include("BPlusTree.h")
+#include "BPlusTree.h"
+#define HAVE_BPLUS 1
 #endif
 #if __has_include("RedBlackTree.h")
 #include "RedBlackTree.h"
@@ -19,7 +12,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -58,21 +50,19 @@ std::string range(double lo, double hi) {
 
 std::vector<Candidate> structuresUnderTest() {
     std::vector<Candidate> c;
-#ifdef HAVE_HASH
-    c.push_back({"Hash map", []() -> TreeBase* { return new HashMapIndex(); }});
+#ifdef HAVE_BPLUS
+    c.push_back({"B+ tree", []() -> TreeBase* { return new BPlusTree(); }});
 #endif
 #ifdef HAVE_RB
     c.push_back({"Red-black tree", []() -> TreeBase* { return new RedBlackTree(); }});
 #endif
     if (c.empty()) {
-        std::cout << "NOTE: BPlusTree.h / RedBlackTree.h not found. Testing the reference "
-                     "against itself so the test harness is checked.\n";
+        std::cout << "NOTE: BPlusTree.h / RedBlackTree.h not found. Testing the reference " "against itself so the test harness is checked.\n";
         c.push_back({"Reference (self-check)", []() -> TreeBase* { return new SortedVectorIndex(); }});
     }
     return c;
 }
 
-// ---- Part 1: small hand-made index with heavy duplicates --------------------
 void testSmallIndex(const Candidate& c) {
     std::cout << "[" << c.name << "] small index tests\n";
 
@@ -84,19 +74,17 @@ void testSmallIndex(const Candidate& c) {
     SortedVectorIndex ref;
     TreeBase* idx = c.make();
     for (int id = 0; id < 500; ++id) {
-        double key = static_cast<double>(rng() % 50);
+        double key = rng() % 50;
         if (id % 5 == 0) key += 0.5;  // a few fractional keys, like tempo
         ref.insert(key, id);
         idx->insert(key, id);
     }
 
-    // Every whole-number range from -2..52, including lo > hi.
     for (int lo = -2; lo <= 52; ++lo)
         for (int hi = -2; hi <= 52; ++hi)
             check(sameIds(ref.rangeSearch(lo, hi), idx->rangeSearch(lo, hi)),
                   c.name + ": small " + range(lo, hi));
 
-    // Strict bounds exactly like the game makes them (just above / below a key).
     const double inf = std::numeric_limits<double>::infinity();
     for (int k = 0; k < 50; ++k) {
         double above = std::nextafter(static_cast<double>(k), inf);
@@ -112,19 +100,15 @@ void testSmallIndex(const Candidate& c) {
 
     delete idx;
 
-    // Sorted insertion order: the worst case for an unbalanced tree.
     TreeBase* sortedIdx = c.make();
     const int n = 100000;
     for (int i = 0; i < n; ++i) sortedIdx->insert(i, i);
-    check(static_cast<int>(sortedIdx->rangeSearch(0, n).size()) == n,
-          c.name + ": 100k sorted inserts, full range");
-    check(static_cast<int>(sortedIdx->rangeSearch(500, 599).size()) == 100,
-          c.name + ": 100k sorted inserts, slice");
+    check(static_cast<int>(sortedIdx->rangeSearch(0, n).size()) == n, c.name + ": 100k sorted inserts, full range");
+    check(static_cast<int>(sortedIdx->rangeSearch(500, 599).size()) == 100, c.name + ": 100k sorted inserts, slice");
     check(sortedIdx->memoryBytes() > 0, c.name + ": memoryBytes() is implemented");
     delete sortedIdx;
 }
 
-// ---- Part 2: the real dataset ---------------------------------------------
 void testRealData(const std::vector<Song>& songs, const std::vector<Candidate>& cands) {
     std::cout << "Building reference indexes for " << songs.size() << " songs...\n";
     std::vector<CategorySets> sets;
@@ -145,9 +129,8 @@ void testRealData(const std::vector<Song>& songs, const std::vector<Candidate>& 
     }
 
     std::mt19937 rng(123);
-    std::uniform_int_distribution<int> anySong(0, static_cast<int>(songs.size()) - 1);
+    std::uniform_int_distribution anySong(0, static_cast<int>(songs.size()) - 1);
 
-    // Random range queries on each attribute, bounds taken from real values.
     for (int k = 1; k < static_cast<int>(sets.size()); ++k) {
         std::cout << "[" << sets[k].name << "] 3,000 random range queries\n";
         for (int q = 0; q < 1000; ++q) {
@@ -166,7 +149,6 @@ void testRealData(const std::vector<Song>& songs, const std::vector<Candidate>& 
         }
     }
 
-    // Full games: every structure must give the same candidates after every guess.
     std::cout << "Playing 100 automatic games across all structures\n";
     Game game(songs, sets);
     game.setVerify(true);
@@ -174,9 +156,7 @@ void testRealData(const std::vector<Song>& songs, const std::vector<Candidate>& 
         game.startRandom(rng, 0);
         while (!game.isOver()) {
             const auto& cand = game.candidates();
-            int pick = cand.empty()
-                           ? anySong(rng)
-                           : cand[std::uniform_int_distribution<int>(0, static_cast<int>(cand.size()) - 1)(rng)];
+            int pick = cand.empty() ? anySong(rng) : cand[std::uniform_int_distribution<int>(0, static_cast<int>(cand.size()) - 1)(rng)];
             GuessResult r = game.guess(pick);
             check(r.structuresAgree, "game " + std::to_string(g + 1) + ", guess " +
                                          std::to_string(game.guessesUsed()) + ": structures disagree");
