@@ -20,7 +20,7 @@ Report and video: done by all members. Video demo: [link](https://youtu.be/IRcZr
 - SFML (graphics library used for the game window). On macOS: `brew install sfml`
 - Python 3 (optional: only for re-cleaning the data and graphing benchmark results)
 
-## Setup
+## Setup 
 1. Clone the repo:
    ```
    git clone https://github.com/catacardenasu/songdle-project2.git
